@@ -2,9 +2,13 @@ import React from "react";
 import LoginForm from "./form";
 import Link from "next/link";
 import Image from "next/image";
+import SignLogNavbar from "../components/SignLogNavbar";
 
 const Page = () => {
   return (
+    <div>
+      <SignLogNavbar/> 
+      
     <div className="h-screen w-screen flex justify-center items-center bg-blue-200">
       <div className="shadow-xl px-8 pb-8 pt-12 bg-white rounded-xl space-y-10">
         <div className="flex items-center space-x-3">
@@ -19,6 +23,7 @@ const Page = () => {
           </Link>
         </p>
       </div>
+    </div>
     </div>
   );
 };
