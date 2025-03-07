@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Syne } from "next/font/google";
 import { Roboto } from "next/font/google";
+import { Toaster } from "react-hot-toast";
+
 
 const roboto = Roboto({ subsets: ["latin"], weight: ["400", "700"] });
 
@@ -35,6 +37,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Toaster position="bottom-center" /> 
       </body>
     </html>
   );

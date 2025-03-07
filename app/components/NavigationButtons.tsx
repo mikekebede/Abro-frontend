@@ -7,17 +7,17 @@ import Link from 'next/link';
 const NavigationButtons = () => {
   return (
     <div className='px-10 md:px-20 lg:px-50'>
-      <Link href="/signup">
+      <Link href="/login">
         <Button
           size="default"
           variant="ghost"
           className="hover:text-blue-500 mr-4 hover:bg-transparent font-semibold"
         >
-          Sign Up
+          Sign in
         </Button>
       </Link>
       
-      <Link href="/login">
+      <Link href="/signup">
         <Button 
           size="default" 
           className="mt-2 ml-3 px-5 py-4 border border-blue-500 text-blue-500 font-semibold
