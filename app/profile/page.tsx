@@ -1,11 +1,11 @@
 import React from 'react'
 
-const heroPage = () => {
+const page = () => {
   return (
     <div>
-      Heropage
+      
     </div>
   )
 }
 
-export default heroPage
+export default page
