@@ -15,7 +15,7 @@ const RegisterForm = () => {
     fullName: "",
     email: "",
     password: "",
-    confirmPassword: "" // ✅ Add Confirm Password to state
+    confirmPassword: "" 
   });
 
   const validateForm = () => {

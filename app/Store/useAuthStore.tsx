@@ -28,6 +28,7 @@ interface AuthStore {
     isLoggingIn: boolean;
     isUpdatingProfile: boolean;
     isCheckingAuth: boolean;
+    onlineUsers:string[],
     checkAuth: () => Promise<void>;
     register:(data: signupData) => Promise<void>;
     login:(data:loginData)=>Promise<void>;
@@ -39,6 +40,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
     isLoggingIn: false,
     isUpdatingProfile: false,
     isCheckingAuth: true,
+    onlineUsers:[],
+    
     checkAuth: async () => {
         try {
             const res = await axiosInstance.get("/auth/check");
