@@ -45,7 +45,7 @@ const RegisterForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-12 w-[400px]'>
+    <form onSubmit={handleSubmit} className='space-y-12 w-[400px] font-serif font-medium'>
 
       <div className="grid w-full max-w-sm items-center gap-1.0">
         <Label htmlFor="fullName">Full Name</Label>
@@ -56,7 +56,7 @@ const RegisterForm = () => {
         />
       </div>
 
-      <div className="grid w-full max-w-sm items-center gap-1.0">
+      <div className="grid w-full max-w-sm items-center gap-1.0 ">
         <Label htmlFor="email">Email</Label>
         <Input 
           value={formData.email}

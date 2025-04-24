@@ -9,13 +9,13 @@ const ChatHeader = () => {
     if (!selectedUser) return null; // Prevent rendering if no user is selected
   
     return (
-      <div className="p-2.5 border-b border-base-300">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="p-2 border-b-2">
+        <div className="flex justify-between">
+          <div className="flex gap-3 px-4 ">
             {/* Avatar */}
             <div className="avatar">
               <div className="size-10 rounded-full relative">
-                <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} />
+                <img src={selectedUser.profilePic || "/avatar.png"} />
               </div>
             </div>
   

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 import { IUser } from "../types/user"; // Import frontend User type
+import { useAuthStore } from "./useAuthStore";
 
 interface IMessageData{
     text: string;
@@ -18,6 +19,8 @@ export const useChatStore = create<{
     getMessages: (userId: string) => Promise<void>;
     sendMessages: (messageData: IMessageData) => Promise<void>;
     setSelectedUser: (selectedUser: IUser | null) => void;
+    subscribeToMessages: () => void;
+    unsubscribeFromMessages: () => void;
 }>((set,get) => ({
     messages: [],
     users: [],
@@ -90,4 +93,24 @@ export const useChatStore = create<{
         }
       },
     setSelectedUser: (selectedUser: IUser | null) => set({ selectedUser }),
+    subscribeToMessages: () => { 
+        const {selectedUser}=get()
+        if(!selectedUser) return
+        const socket = useAuthStore.getState().socket;
+
+        if (socket) {
+            socket.on("newMessage", (newMessage) => {
+                const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+                if (!isMessageSentFromSelectedUser) return;
+                set({
+                    messages: [...get().messages, newMessage],
+                });
+            });
+        }
+    },
+    unsubscribeFromMessages: () => {
+    const socket=useAuthStore.getState().socket;
+    if(socket) socket.off("newMessage");
+    }
+
 }));

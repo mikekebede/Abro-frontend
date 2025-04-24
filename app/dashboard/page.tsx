@@ -21,7 +21,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden font-serif font-medium">
       {/*  Navbar remains fixed at the top */}
       <DashNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
 
