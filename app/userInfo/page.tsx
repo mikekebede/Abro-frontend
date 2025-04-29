@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -8,11 +9,16 @@ import { Button } from "@/components/ui/button";
 import SignLogNavbar from "../components/SignLogNavbar";
 import { freelanceJobs } from "../lib/freeLanceJobs";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "../store/useAuthStore";
+import toast from "react-hot-toast";
 
 const availableSkills = freelanceJobs;
 
 export default function Page() {
   const router = useRouter();
+  const { checkAuth, isCheckingAuth, authUser, isUpdatingProfile, updateProfile, addUserInfo } = useAuthStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImg, setSelectedImg] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [skillQuery, setSkillQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -31,6 +37,39 @@ export default function Page() {
   const removeSkill = (skill: string) => {
     setSelectedSkills(selectedSkills.filter((s) => s !== skill));
   };
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      if (typeof base64Image === 'string') {
+        setSelectedImg(base64Image);
+        await updateProfile({ profilePic: base64Image });
+      }
+    };
+  };
+  const handleSubmit = async () => {
+    if (!description.trim() || selectedSkills.length === 0) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await addUserInfo({
+        skills: selectedSkills,
+        description: description.trim()
+      });
+      router.push("/dashboard");
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="h-screen overflow-hidden">
@@ -46,7 +85,38 @@ export default function Page() {
           <h2 className="text-2xl font-serif font-medium text-gray-800 tracking-tight mb-7 text-center">
             Tell us a little bit about yourself✨
           </h2>
-
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <img
+                src={selectedImg || authUser?.profilePic || "/avatar.png"}
+                alt="Profile"
+                className="size-32 rounded-full object-cover border-4 "
+              />
+              <label
+                htmlFor="avatar-upload"
+                className={`
+                  absolute bottom-0 right-0 
+                  bg-base-content hover:scale-105
+                  p-2 rounded-full cursor-pointer 
+                  transition-all duration-200
+                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
+                `}
+              >
+                <Camera className="w-5 h-5 text-base-200" />
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUpdatingProfile}
+                />
+              </label>
+            </div>
+            <p className="text-sm text-zinc-400">
+              {isUpdatingProfile ? "Uploading..." : "Please add a profile picture"}
+            </p>
+          </div>
           <div className="space-y-6">
             <div>
               <label className="block mb-2 font-serif font-medium">Short Description</label>
@@ -96,8 +166,13 @@ export default function Page() {
       </div>
 
       <div className="fixed bottom-0 right-10 p-10">
-        <Button size="lg" onClick={() => router.push("/userInfo/skills")}>
-          Next
+        <Button
+          size="lg"
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="min-w-[100px]"
+        >
+          {isSubmitting ? "Saving..." : "Next"}
         </Button>
       </div>
     </div>

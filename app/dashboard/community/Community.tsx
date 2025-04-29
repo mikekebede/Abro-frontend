@@ -7,26 +7,37 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
-
+import { useRouter } from 'next/navigation';
+import { useChatStore } from '../../store/useChatStore';
+import { MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import Fuse from 'fuse.js'
 import { Input } from "@/components/ui/input"
 import { useAuthStore } from '../../store/useAuthStore'
 
 interface CommunityUser {
-  fullName: string;
+  _id: string;
   email: string;
+  fullName: string;
   profilePic: string | null;
-  // Add other properties that exist in your community user object
+  shortDescription: string;
+  skills: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 const Community = () => {
   const { community, isCommunityLoading, getCommunity } = useCommunityStore()
+  const router = useRouter();
+  const { setSelectedUser } = useChatStore();
   const {authUser}=useAuthStore()
   const [query, setQuery] = useState('')
   const fuse = new Fuse(community, {
     keys: [
       "fullName",
       "email",
-    ]
+      "skills"
+    ],
+    threshold: 0.3,
   })
   const searchResults = fuse.search(query)
   const userCommunitySearch = query ? searchResults.map((result) => result.item) : community
@@ -62,7 +73,38 @@ const Community = () => {
                 <p className='pt-2 text-sm font-helvetica'>{userCommunity.fullName}</p>
               </div></HoverCardTrigger>
             <HoverCardContent className='border-black bg-white text-black w-80 p-4 rounded-lg shadow-lg'>
-              The React Framework – created and maintained by @vercel.
+            <div className='flex flex-col gap-4'>
+    <div className="flex items-center gap-4">
+      <div>
+        <h3 className='text-lg font-bold'>{userCommunity.fullName}</h3>
+        <p className='text-sm text-gray-500'>{userCommunity.email}</p>
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <div>
+        <p className='text-sm leading-relaxed'>{userCommunity.shortDescription}</p>
+      </div>
+
+      <div>
+        <p className='font-semibold mb-2'>Skills:</p>
+        <div className="flex flex-wrap gap-2">
+          {userCommunity.skills.map((skill, index) => (
+            <span 
+              key={index}
+              className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full"
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-xs text-gray-500">
+        Member since {new Date(userCommunity.createdAt).toLocaleDateString()}
+      </div>
+    </div>
+  </div>
             </HoverCardContent>
           </HoverCard>
         ))}

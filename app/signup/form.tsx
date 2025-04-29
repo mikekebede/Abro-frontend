@@ -7,15 +7,17 @@ import { useState } from 'react'
 import React from 'react'
 import { useAuthStore } from '../store/useAuthStore'
 import toast from "react-hot-toast";
+import { useRouter } from 'next/navigation'
 
 const RegisterForm = () => {
+  const router = useRouter();
   const { register, isSigningUp } = useAuthStore();
 
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
-    confirmPassword: "" 
+    confirmPassword: ""
   });
 
   const validateForm = () => {
@@ -24,7 +26,7 @@ const RegisterForm = () => {
     if (!/\S+@\S+\.\S+/.test(formData.email)) return toast.error("Invalid email format");
     if (!formData.password) return toast.error("Password is required");
     if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
-    
+
     // ✅ Check if password and confirmPassword match
     if (formData.password !== formData.confirmPassword) {
       return toast.error("Passwords do not match");
@@ -35,13 +37,14 @@ const RegisterForm = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     const success = validateForm();
-  
+
     if (success === true) {
       const { confirmPassword, ...dataToSend } = formData; // Remove confirmPassword before sending it to the backend
-      register(dataToSend); 
+      register(dataToSend);
     }
+    router.push("/userInfo"); // Redirect to user info page after successful registration
   };
 
   return (
@@ -49,37 +52,37 @@ const RegisterForm = () => {
 
       <div className="grid w-full max-w-sm items-center gap-1.0">
         <Label htmlFor="fullName">Full Name</Label>
-        <Input 
+        <Input
           value={formData.fullName}
           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-          type="text" id="fullName"  
+          type="text" id="fullName"
         />
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-1.0 ">
         <Label htmlFor="email">Email</Label>
-        <Input 
+        <Input
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          type="email" id="email"  
+          type="email" id="email"
         />
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-1.0">
         <Label htmlFor="password">Password</Label>
-        <Input 
+        <Input
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          type="password" id="password"  
+          type="password" id="password"
         />
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-1.0">
         <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input 
+        <Input
           value={formData.confirmPassword}
           onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} // ✅ Add onChange handler
-          type="password" id="confirmPassword"  
+          type="password" id="confirmPassword"
         />
       </div>
 
@@ -88,7 +91,7 @@ const RegisterForm = () => {
           Register
         </Button>
       </div>
-      
+
     </form>
   );
 }

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { X, Image } from "lucide-react";
+import Fuse from 'fuse.js';
 import imageCompression from 'browser-image-compression';
 
 import {
@@ -47,12 +48,6 @@ interface PostingFormData {
 }
 
 export async function compressImage(file: File) {
-  useEffect(() => {
-
-  }, [])
-
-
-
   const options = {
     maxSizeMB: 1, // Max file size in MB
     maxWidthOrHeight: 1920,
@@ -75,21 +70,23 @@ const Posting = () => {
   const [showMyPosts, setShowMyPosts] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [query, setQuery] = useState('')
+
   useEffect(() => {
     checkAuth(); // Call checkAuth on component mount
-  }, []);
+  }, [checkAuth]);
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
-      return
+      return;
     }
 
     try {
       // Compress the image before creating preview
       const compressedImage = await compressImage(file);
-
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -105,7 +102,6 @@ const Posting = () => {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
 
   const onSubmit = async (data: PostingFormData) => {
     try {
@@ -129,16 +125,35 @@ const Posting = () => {
       console.error('Error creating post:', error);
     }
   };
-  const filteredPosts = useMemo(() => {
+
+  // First apply "My Posts" filter if enabled; otherwise use all posts.
+  const postsToSearch = useMemo(() => {
     if (showMyPosts && authUser) {
-      return posts.filter((post) => authUser?.email === post.creatorID.email)
+      return posts.filter((post) => authUser.email === post.creatorID.email)
     }
-    return posts
-  }, [authUser, posts, showMyPosts])
+    return posts;
+  }, [authUser, posts, showMyPosts]);
+
+  // Create a Fuse instance for searching posts based on title, description, and skills.
+  const fuse = new Fuse(postsToSearch, {
+    keys: [
+      "serviceTitle",
+      "fullDescription",
+      "skills"
+    ],
+    threshold: 0.3,
+  });
+
+  const searchResults = fuse.search(query);
+  // If there is a search query, use the filtered Fuse results; otherwise use postsToSearch.
+  const postsToDisplay = query ? searchResults.map((result) => result.item) : postsToSearch;
+
+  const handleOnSearch: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    setQuery(event.target.value);
+  };
 
   useEffect(() => {
     getPosts();
-    console.log(posts)
   }, [getPosts]);
 
   if (isPostsLoading) {
@@ -147,7 +162,6 @@ const Posting = () => {
 
   return (
     <div className='flex flex-col mt-16 h-screen '>
-
       <div className="flex flex-col items-end mt-4 mr-10">
         <PostFilter
           onFilterChange={(checked) => {
@@ -155,18 +169,28 @@ const Posting = () => {
             setShowMyPosts(checked);
           }}
         />
-      </div >
+      </div>
+
+      {/* Search Input for Posts */}
+      <div className="flex justify-center pt-4 pb-6">
+        <Input
+          placeholder="Search your Posts"
+          value={query}
+          onChange={handleOnSearch}
+          className="w-[90%] max-w-md mx-auto border-black"
+        />
+      </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-          {filteredPosts.map((post, index) => (
+          {postsToDisplay.map((post, index) => (
             <Sheet key={post._id || index}>
               <SheetTrigger asChild>
                 <div className="w-full">
                   <Card className="m-4 p-4 rounded-lg shadow-sm mb-4 
-             bg-gradient-to-r from-[#ffffff] to-[#e7e7e7]
-             text-black hover:brightness-110 ease-out duration-300
-              w-[400px] h-[247px] overflow-hidden">
+                    bg-gradient-to-r from-[#ffffff] to-[#e7e7e7]
+                    text-black hover:brightness-110 ease-out duration-300
+                    w-[400px] h-[247px] overflow-hidden">
                     <CardHeader>
                       <CardTitle>{post.serviceTitle}</CardTitle>
                     </CardHeader>
@@ -279,17 +303,17 @@ const Posting = () => {
             <Button
               size="icon"
               className="group h-16 w-16 rounded-full hover:w-36 transition-all duration-300 
-          bg-black hover:bg-white border-2 border-transparent hover:border-black
-          text-white hover:text-black
-          flex items-center justify-center overflow-hidden"
+              bg-black hover:bg-white border-2 border-transparent hover:border-black
+              text-white hover:text-black
+              flex items-center justify-center overflow-hidden"
             >
               <span className="text-3xl font-bold absolute transition-all duration-300 
-          group-hover:opacity-0 group-hover:translate-x-[-100%]">
+              group-hover:opacity-0 group-hover:translate-x-[-100%]">
                 +
               </span>
               <span className="text-lg absolute transition-all duration-300 
-          opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-[100%]
-          whitespace-nowrap font-semibold">
+              opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-[100%]
+              whitespace-nowrap font-semibold">
                 Create Post
               </span>
             </Button>
@@ -303,36 +327,35 @@ const Posting = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                {/* Service Title - Required */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="serviceTitle" className="text-right">
                     Service Title*
                   </Label>
                   <Input
-                    {...register('serviceTitle', { required: true })}
+                    {...register('serviceTitle', { 
+                      required: true, 
+                      maxLength: { value: 15, message: "Service title cannot exceed 15 characters" } 
+                    })}
                     id="serviceTitle"
+                    maxLength={15} 
                     placeholder="Enter service title"
                     className="col-span-3"
                   />
                 </div>
-
-                {/* Budget - Optional */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="budget" className="text-right">
                     Budget
                   </Label>
                   <Input
                     {...register('budget', {
-                      setValueAs: (v) => v || '', // Empty string if no value
+                      setValueAs: (v) => v || '',
                     })}
                     id="budget"
                     placeholder="Enter budget"
-                    maxLength={30} // Limit to 30 characters
+                    maxLength={30}
                     className="col-span-3"
                   />
                 </div>
-
-                {/* Deadline - Required */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="deadline" className="text-right">
                     Deadline*
@@ -344,8 +367,6 @@ const Posting = () => {
                     className="col-span-3"
                   />
                 </div>
-
-                {/* Skills - Required */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="skills" className="text-right">
                     Skills*
@@ -354,12 +375,10 @@ const Posting = () => {
                     {...register('skills', { required: true })}
                     id="skills"
                     placeholder="Enter required skills"
-                    maxLength={30} // Limit to 30 characters
+                    maxLength={15}
                     className="col-span-3"
                   />
                 </div>
-
-                {/* Location - Required */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="location" className="text-right">
                     Location*
@@ -368,56 +387,50 @@ const Posting = () => {
                     {...register('location', { required: true })}
                     id="location"
                     placeholder="Enter location"
-                    maxLength={30} // Limit to 30 characters
+                    maxLength={15}
                     className="col-span-3"
                   />
                 </div>
-
-                {/* Full Description - Optional */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="fullDescription" className="text-right">
                     Description
                   </Label>
                   <textarea
                     {...register('fullDescription', {
-                      setValueAs: (v) => v || '', // Empty string if no value
+                      setValueAs: (v) => v || '',
                     })}
                     id="fullDescription"
+                    maxLength={200}
                     placeholder="Enter full description"
                     className="col-span-3 min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
-
-                {/* Contact Info - Optional */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="contactInfo" className="text-right">
                     Contact Info
                   </Label>
                   <Input
                     {...register('contactInfo', {
-                      setValueAs: (v) => v || '', // Empty string if no value
+                      setValueAs: (v) => v || '',
                     })}
                     id="contactInfo"
                     placeholder="Enter contact information"
                     className="col-span-3"
                   />
                 </div>
-
-                {/* Preferred Qualifications - Optional */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="preferredQualifications" className="text-right">
                     Qualifications
                   </Label>
                   <Input
                     {...register('preferredQualifications', {
-                      setValueAs: (v) => v || '', // Empty string if no value
+                      setValueAs: (v) => v || '',
                     })}
                     id="preferredQualifications"
                     placeholder="Enter preferred qualifications"
                     className="col-span-3"
                   />
                 </div>
-                
               </div>
               <DialogFooter>
                 <Button type="submit">Create Post</Button>
@@ -425,10 +438,9 @@ const Posting = () => {
             </form>
           </DialogContent>
         </Dialog>
-
       </div>
     </div>
   );
 }
 
-export default Posting
+export default Posting;

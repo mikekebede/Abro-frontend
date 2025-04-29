@@ -23,7 +23,6 @@ interface loginData {
 interface userInfoData{
     skills: string[];
     description: string;
-    profilePic: string;
 }
 
 interface updateProfileData {
@@ -45,6 +44,7 @@ interface AuthStore {
     updateProfile: (data: updateProfileData) => Promise<void>;
     connectSocket: () => void;
     disconnectSocket: () => void;
+    addUserInfo: (data: userInfoData) => void;
 
 }
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -148,7 +148,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         try {
           const res = await axiosInstance.put("/auth/update-profile", data);
           set({ authUser: res.data });
-          toast.success("Profile updated successfully");
+          toast.success("Thank you!");
         } catch (error) {
             if (error instanceof Error) {
                 toast.error(error.message);
@@ -186,8 +186,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             socket.disconnect();
         }
     },
-    addUserInfo: (userId: string) => {
-
+    addUserInfo: async (data: userInfoData) => {
+        console.log("data in addUserInfo: ", data);
+        set({ isUpdatingProfile: true });
+        try {
+          const res = await axiosInstance.put("/auth/updateUserInfo", data);
+          set({ authUser: res.data });
+          toast.success("Profile updated successfully");
+        } catch (error) {
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else if (
+                typeof error === "object" &&
+                error !== null &&  
+                "response" in error
+            ) {
+                toast.error((error as any).response.data.message || "Signup failed!");
+            } else {
+                toast.error("An unknown error occurred.");
+            }
+        } finally {
+          set({ isUpdatingProfile: false });
+        }
     }
 
 }))
