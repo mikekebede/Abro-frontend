@@ -13,7 +13,7 @@ const NavigationButtons = () => {
           variant="ghost"
           className="hover:text-blue-500 mr-4 hover:bg-transparent font-semibold"
         >
-          Sign in
+          Log In
         </Button>
       </Link>
       
@@ -24,7 +24,7 @@ const NavigationButtons = () => {
            hover:bg-blue-500 hover:border-blue-600 hover:text-white" 
           variant="outline"
         >
-          Join
+          Sign Up
         </Button>
       </Link>
     </div>

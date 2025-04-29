@@ -15,14 +15,14 @@ const Page = () => {
           {/* ✅ Flexbox for Logo + Header */}
           <div className="flex items-center space-x-3">
             <Image src="/images/Abrologo.png" alt="Abro logo" width={50} height={50} />
-            <h1 className="px-6 font-semibold text-2xl">Create Your Account</h1>
+            <h1 className="px-6 font-serif font-medium text-2xl">Create Your Account</h1>
           </div>
 
           <RegisterForm />
 
-          <p className="text-center">
+          <p className="font-serif font-medium text-center">
             Have an account?
-            <Link className="text-indigo-500 hover:underline ml-1" href="./login">
+            <Link className="text-indigo-500 font-serif font-medium hover:underline ml-1" href="./login">
               Sign in
             </Link>
           </p>

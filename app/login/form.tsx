@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import React, { useState } from 'react'
 import { useAuthStore } from '../store/useAuthStore'
+import { useRouter } from 'next/navigation'
 
 const LoginForm = () => {
+  const router = useRouter();
   const{login, isLoggingIn}=useAuthStore();
   const [formData,setFormData]=useState({
     email:"",
@@ -16,10 +18,11 @@ const LoginForm = () => {
     e.preventDefault();
     login(formData);
     console.log("login successfull!");
+    router.push('/dashboard');
     
   }
   return (
-    <form onSubmit={handleSubmit} className='space-y-12 w-[400px]'>
+    <form onSubmit={handleSubmit} className='space-y-12 w-[400px] font-serif font-medium'>
       <div className="grid w-full max-w-sm items-center gap-1.5">
       <Label htmlFor="email">Email</Label>
       <Input 
